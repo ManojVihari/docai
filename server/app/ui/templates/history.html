@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DocAI - {{ repo }} / {{ api }}</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            text-align: left;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        .actions a {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📜 {{ repo }} / {{ api }}</h1>
+
+    <table>
+        <tr>
+            <th>Version</th>
+            <th>Commit</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for v in versions %}
+        <tr>
+            <td>v{{ v.version }}</td>
+            <td>{{ v.commit_hash[:7] }}</td>
+            <td class="actions">
+
+                <!-- View Markdown -->
+                <a href="/ui/{{ repo }}/{{ api }}/view/{{ v.version }}">
+                    View
+                </a>
+
+                <!-- Compare with previous -->
+                {% if not loop.first %}
+                <a href="/ui/{{ repo }}/{{ api }}/diff?v1={{ versions[loop.index0-1].version }}&v2={{ v.version }}">
+                    Compare Prev
+                </a>
+                {% endif %}
+
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+    <br>
+    <a href="/ui">⬅ Back to API List</a>
+
+</body>
+
+</html>

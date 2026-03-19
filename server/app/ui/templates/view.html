@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ repo }} / {{ api }} v{{ version }}</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 40px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1, h2, h3 {
+            color: #333;
+        }
+
+        pre {
+            background: #f6f8fa;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        code {
+            background: #f6f8fa;
+            padding: 2px 4px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+
+<h1>{{ repo }} / {{ api }} (v{{ version }})</h1>
+
+<div>
+    {{ content | safe }}
+</div>
+
+<br>
+<a href="/ui/{{ repo }}/{{ api }}">⬅ Back to History</a>
+
+</body>
+</html>

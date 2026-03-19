@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diff - {{ repo }} / {{ api }}</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 30px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        table.diff {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+        }
+
+        .diff th {
+            background: #f4f4f4;
+            padding: 8px;
+        }
+
+        .diff td {
+            padding: 6px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        /* LEFT (old) */
+        .diff .diff_sub {
+            background-color: #ffecec;
+        }
+
+        /* RIGHT (new) */
+        .diff .diff_add {
+            background-color: #eaffea;
+        }
+
+        /* CHANGED */
+        .diff .diff_chg {
+            background-color: #fff5cc;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔍 Diff: {{ repo }} / {{ api }}</h1>
+    <p>Comparing <b>v{{ v1 }}</b> → <b>v{{ v2 }}</b></p>
+</div>
+
+<div>
+    {{ diff | safe }}
+</div>
+
+<br>
+<a href="/ui/{{ repo }}/{{ api }}">⬅ Back to History</a>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DocAI - API List</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 40px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 50%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📘 DocAI - APIs</h1>
+
+    {% for repo, apis in data.items() %}
+
+<h2>📦 {{ repo }}</h2>
+
+<table>
+    <tr>
+        <th>API Name</th>
+        <th>Latest Version</th>
+    </tr>
+
+    {% for api in apis %}
+    <tr>
+        <td>
+            <a href="/ui/{{ repo }}/{{ api.name }}">
+                {{ api.name }}
+            </a>
+        </td>
+        <td>
+            v{{ api.latest_version }}
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endfor %}
+
+</body>
+
+</html>
