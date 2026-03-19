@@ -20,7 +20,7 @@ def main():
         repo_path=args.repo,
         commit=args.commit
     )
-
+    print(result)
     if args.server:
 
         try:
