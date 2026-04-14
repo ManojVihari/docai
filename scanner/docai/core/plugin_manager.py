@@ -9,16 +9,25 @@ class PluginManager:
         plugins = []
 
         package = "docai.plugins"
-
-        for _, name, _ in pkgutil.iter_modules(
+        for _, name, ispkg in pkgutil.iter_modules(
             importlib.import_module(package).__path__
         ):
 
-            module = importlib.import_module(
-                f"{package}.{name}.plugin"
-            )
+            # ✅ ONLY process folders (plugins), skip files like base_plugin.py
+            if not ispkg:
+                continue
 
-            plugin_class = getattr(module, "Plugin")
+            try:
+                module = importlib.import_module(
+                    f"{package}.{name}.plugin"
+                )
+            except ModuleNotFoundError:
+                continue
+
+            plugin_class = getattr(module, "Plugin", None)
+
+            if not plugin_class:
+                continue
 
             plugin = plugin_class()
 
