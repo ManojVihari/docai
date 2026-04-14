@@ -7,23 +7,46 @@ class PluginManager:
     def load_plugins(self):
 
         plugins = []
-
         package = "docai.plugins"
 
-        for _, name, _ in pkgutil.iter_modules(
-            importlib.import_module(package).__path__
-        ):
+        try:
+            base_module = importlib.import_module(package)
+        except ModuleNotFoundError:
+            print(f"[ERROR] Package not found: {package}")
+            return []
 
-            module = importlib.import_module(
-                f"{package}.{name}.plugin"
-            )
+        print(f"[DEBUG] Scanning plugins in: {list(base_module.__path__)}")
 
-            plugin_class = getattr(module, "Plugin")
+        for finder, name, ispkg in pkgutil.iter_modules(base_module.__path__):
 
-            plugin = plugin_class()
+            print(f"[DEBUG] Found: {name}, ispkg={ispkg}")
 
-            print(f"Loaded plugin: {plugin.name}")
+            try:
+                # Try loading plugin module inside folder
+                module = importlib.import_module(
+                    f"{package}.{name}.plugin"
+                )
+            except ModuleNotFoundError as e:
+                print(f"[WARN] Skipping {name}: plugin module not found ({e})")
+                continue
+            except Exception as e:
+                print(f"[ERROR] Failed loading {name}: {e}")
+                continue
 
-            plugins.append(plugin)
+            plugin_class = getattr(module, "Plugin", None)
+
+            if not plugin_class:
+                print(f"[WARN] No Plugin class in {name}")
+                continue
+
+            try:
+                plugin = plugin_class()
+                print(f"[INFO] Loaded plugin: {plugin.name}")
+                plugins.append(plugin)
+            except Exception as e:
+                print(f"[ERROR] Failed to initialize plugin {name}: {e}")
+
+        if not plugins:
+            print("[WARN] No plugins loaded")
 
         return plugins
