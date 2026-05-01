@@ -7,7 +7,10 @@ setup(
     author="DocAI",
     packages=find_packages(),
     install_requires=[
-        "requests>=2.31.0"
+    "requests>=2.31.0",
+    "tree-sitter>=0.21.0",
+    "tree-sitter-java>=0.21.0",
+    "tree-sitter-python>=0.21.0"
     ],
     entry_points={
         "console_scripts": [

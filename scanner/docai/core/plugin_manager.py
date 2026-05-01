@@ -23,6 +23,21 @@ class PluginManager:
 
             try:
                 # Try loading plugin module inside folder
+
+        try:
+            base_module = importlib.import_module(package)
+        except ModuleNotFoundError:
+            print(f"[ERROR] Package not found: {package}")
+            return []
+
+        print(f"[DEBUG] Scanning plugins in: {list(base_module.__path__)}")
+
+        for finder, name, ispkg in pkgutil.iter_modules(base_module.__path__):
+
+            print(f"[DEBUG] Found: {name}, ispkg={ispkg}")
+
+            try:
+                # Try loading plugin module inside folder
                 module = importlib.import_module(
                     f"{package}.{name}.plugin"
                 )
