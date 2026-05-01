@@ -13,19 +13,21 @@ version_service = VersionService()
 def process_routes(routes, commit, repository):
 
     for route in routes:
+        print(f"Processing {route.function}...")
         signature = signature_service.generate(route)
 
         should_create, version = version_service.should_create_version(
             repository,
-            route.function_name,
+            route.function,
             signature
         )
 
         if not should_create:
-            print(f"[SKIPPED] {route.function_name}")
+            print(f"[SKIPPED] {route.function}")
             continue
-
-        explanation_raw = generator.generate_explanation(route.source_code)
+        
+        print(f"[PROCESSING] {route.function} - Version: {version}")
+        explanation_raw = generator.generate_explanation(route)
 
         try:
             explanation = json.loads(explanation_raw)
@@ -44,14 +46,14 @@ def process_routes(routes, commit, repository):
 
         markdown_writer.write(
             repository=repository,
-            api_name=route.function_name,
+            api_name=route.function,
             version=version,
             content=documentation
         )
 
         version_service.save_version(
             repository=repository,
-            api_name=route.function_name,
+            api_name=route.function,
             version=version,
             signature=signature,
             commit_hash=commit,

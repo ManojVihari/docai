@@ -1,70 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>DocAI - API List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocAI - Workspaces</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body {
-            font-family: Arial;
-            padding: 40px;
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
         }
-
-        h1 {
-            margin-bottom: 20px;
+        
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
         }
-
-        a {
-            text-decoration: none;
-            color: blue;
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #0369a1 100%);
         }
-
-        table {
-            border-collapse: collapse;
-            width: 50%;
+        
+        .workspace-card {
+            transition: all 0.25s ease;
         }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
+        
+        .workspace-card:hover {
+            background-color: #f0f9ff;
+            border-color: #3b82f6;
+            transform: translateY(-2px);
         }
-
-        th {
-            background-color: #f4f4f4;
+        
+        .workspace-card:active {
+            transform: translateY(0);
+        }
+        
+        .sidebar-active {
+            background-color: rgba(30, 64, 175, 0.08);
+            border-left: 3px solid #1e40af;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 
-<body>
+<body class="bg-white text-slate-900 min-h-screen">
 
-    <h1>📘 DocAI - APIs</h1>
+<div class="flex h-screen">
 
-    {% for repo, apis in data.items() %}
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-50 border-r border-slate-200 hidden lg:flex flex-col">
+        <!-- Logo -->
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 gradient-bg rounded-lg flex items-center justify-center">
+                    <i class="fas fa-book text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900">DocAI</h1>
+                    <p class="text-xs text-slate-500">Documentation</p>
+                </div>
+            </div>
+        </div>
 
-<h2>📦 {{ repo }}</h2>
-
-<table>
-    <tr>
-        <th>API Name</th>
-        <th>Latest Version</th>
-    </tr>
-
-    {% for api in apis %}
-    <tr>
-        <td>
-            <a href="/ui/{{ repo }}/{{ api.name }}">
-                {{ api.name }}
+        <!-- Navigation -->
+        <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
+            <a href="/ui/" class="sidebar-active flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium text-blue-700">
+                <i class="fas fa-home w-4"></i>
+                <span>Dashboard</span>
             </a>
-        </td>
-        <td>
-            v{{ api.latest_version }}
-        </td>
-    </tr>
-    {% endfor %}
+            <a href="/ui/all" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-slate-600 hover:bg-white transition">
+                <i class="fas fa-layer-group w-4"></i>
+                <span>All APIs</span>
+            </a>
+            <a href="/ui/search" class="flex items-center gap-3 px-3 py-2.5 rounded text-sm text-slate-600 hover:bg-white transition">
+                <i class="fas fa-robot w-4"></i>
+                <span>LLM Search</span>
+            </a>
+        </nav>
 
-</table>
+        <!-- Footer -->
+        <div class="p-3 border-t border-slate-200">
+            <p class="text-xs text-slate-500">v1.0.0</p>
+        </div>
+    </aside>
 
-{% endfor %}
+    <!-- Main -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Header -->
+        <header class="bg-white border-b border-slate-200">
+            <div class="px-8 py-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-900">Workspaces</h2>
+                    <p class="text-sm text-slate-500 mt-1">Select a workspace to explore APIs</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="/ui/search" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded text-sm font-medium transition">
+                        <i class="fas fa-robot mr-2"></i>LLM Search
+                    </a>
+                    <a href="/ui/all" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition">
+                        <i class="fas fa-layer-group mr-2"></i>All APIs
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="p-8 max-w-4xl mx-auto">
+                
+                <!-- Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-blue-600 font-medium">Total APIs</p>
+                                <p class="text-2xl font-bold text-slate-900 mt-1" id="totalApis">{% set total = data.values() | map('length') | sum %}{{ total }}</p>
+                            </div>
+                            <i class="fas fa-cube text-blue-300 text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-cyan-600 font-medium">Services</p>
+                                <p class="text-2xl font-bold text-slate-900 mt-1" id="totalServices">{{ data | length }}</p>
+                            </div>
+                            <i class="fas fa-layer-group text-cyan-300 text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-green-600 font-medium">Status</p>
+                                <p class="text-2xl font-bold text-slate-900 mt-1 flex items-center gap-2">
+                                    <span class="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                                    All Active
+                                </p>
+                            </div>
+                            <i class="fas fa-check-circle text-green-300 text-3xl opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workspaces Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for repo, apis in data.items() %}
+                    
+                    <a href="/ui/all" class="fade-in workspace-card group bg-white rounded-lg border border-slate-200 p-8 h-full hover:shadow-md cursor-pointer">
+                        <!-- Icon -->
+                        <div class="mb-4">
+                            <div class="w-12 h-12 gradient-bg rounded-lg flex items-center justify-center group-hover:shadow-lg transition">
+                                <i class="fas fa-cube text-white text-lg"></i>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-900 group-hover:text-blue-700 transition">{{ repo }}</h3>
+                            <p class="text-sm text-slate-500 mt-2">{{ apis | length }} API{{ "s" if apis | length != 1 else "" }}</p>
+                        </div>
+
+                        <!-- Arrow -->
+                        <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                            <span class="text-xs text-slate-500">Explore workspace</span>
+                            <i class="fas fa-arrow-right text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition"></i>
+                        </div>
+                    </a>
+
+                    {% endfor %}
+                </div>
+
+                <!-- Empty State -->
+                {% if not data %}
+                <div class="text-center py-16">
+                    <i class="fas fa-inbox text-4xl text-slate-300 mb-4"></i>
+                    <p class="text-slate-600 font-medium">No workspaces found</p>
+                    <p class="text-slate-500 text-sm mt-1">Create your first API documentation to get started</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </main>
+
+    </div>
+</div>
 
 </body>
 

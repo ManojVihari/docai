@@ -1,73 +1,276 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Diff - {{ repo }} / {{ api }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare v{{ v1 }} vs v{{ v2 }} - {{ repo }} / {{ api }} - DocAI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body {
-            font-family: Arial;
-            padding: 30px;
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
         }
 
-        h1 {
-            margin-bottom: 20px;
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        table.diff {
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #0369a1 100%);
+        }
+
+        .diff-table {
             width: 100%;
             border-collapse: collapse;
-            font-family: monospace;
+            font-size: 13px;
         }
 
-        .diff th {
-            background: #f4f4f4;
-            padding: 8px;
+        .diff-table td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
         }
 
-        .diff td {
-            padding: 6px;
-            border: 1px solid #ddd;
-            vertical-align: top;
+        .diff-line-number {
+            color: #94a3b8;
+            background: #f8fafc;
+            user-select: none;
+            width: 50px;
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
         }
 
-        /* LEFT (old) */
-        .diff .diff_sub {
-            background-color: #ffecec;
+        .diff-add {
+            background-color: #ecfdf5;
         }
 
-        /* RIGHT (new) */
-        .diff .diff_add {
-            background-color: #eaffea;
+        .diff-remove {
+            background-color: #fef2f2;
         }
 
-        /* CHANGED */
-        .diff .diff_chg {
-            background-color: #fff5cc;
+        .diff-context {
+            background-color: #f8fafc;
         }
 
-        a {
-            text-decoration: none;
-            color: blue;
+        .diff-change-old {
+            background-color: #fef2f2;
         }
 
-        .header {
-            margin-bottom: 20px;
+        .diff-change-new {
+            background-color: #ecfdf5;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+        }
+
+        .summary-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(186, 230, 253, 0.5);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
 
-<div class="header">
-    <h1>🔍 Diff: {{ repo }} / {{ api }}</h1>
-    <p>Comparing <b>v{{ v1 }}</b> → <b>v{{ v2 }}</b></p>
+<body class="bg-slate-50">
+
+<!-- Header -->
+<div class="sticky top-0 z-50 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <a href="/ui" class="px-3 py-2 rounded-lg hover:bg-slate-100 transition flex items-center gap-2">
+                <i class="fas fa-home text-slate-500"></i>
+                <span class="text-slate-600">Dashboard</span>
+            </a>
+            <span class="text-slate-300">/</span>
+            <span class="text-slate-700 font-medium">{{ repo }} / {{ api }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="/ui/{{ repo }}/{{ api }}/qa-plan?v1={{ v1 }}&v2={{ v2 }}" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition text-sm font-medium">
+                <i class="fas fa-tasks mr-2"></i>QA Plan
+            </a>
+            <a href="/ui/{{ repo }}/{{ api }}/dependencies?v1={{ v1 }}&v2={{ v2 }}" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition text-sm font-medium">
+                <i class="fas fa-sitemap mr-2"></i>Dependencies
+            </a>
+            <a href="/ui/{{ repo }}/{{ api }}/templates" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm font-medium">
+                <i class="fas fa-layer-group mr-2"></i>Templates
+            </a>
+            <a href="/ui/{{ repo }}/{{ api }}/history" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition text-sm font-medium">
+                <i class="fas fa-history mr-2"></i>History
+            </a>
+            <a href="/ui/{{ repo }}/{{ api }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium">
+                <i class="fas fa-file-alt mr-2"></i>Latest
+            </a>
+        </div>
+    </div>
 </div>
 
-<div>
-    {{ diff | safe }}
-</div>
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-6 py-8">
+    
+    <!-- Title -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-slate-900">Version Comparison</h1>
+        <p class="text-slate-600 mt-2">Comparing <span class="font-semibold px-2 py-1 bg-red-50 text-red-700 rounded">v{{ v1 }}</span> 
+           <span class="mx-2 text-slate-400">→</span> 
+           <span class="font-semibold px-2 py-1 bg-green-50 text-green-700 rounded">v{{ v2 }}</span></p>
+    </div>
 
-<br>
-<a href="/ui/{{ repo }}/{{ api }}">⬅ Back to History</a>
+    <!-- AI Summary Card -->
+    {% if summary %}
+    <div class="summary-box rounded-lg p-6 mb-8 border-l-4 border-blue-400 fade-in">
+        <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100">
+                    <i class="fas fa-magic text-blue-600"></i>
+                </div>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold text-slate-900 mb-3">
+                    <i class="fas fa-sparkles text-yellow-500 mr-2"></i>AI-Powered Change Summary
+                </h3>
+                <div class="text-slate-700 space-y-2 text-sm leading-relaxed">
+                    {% for line in summary.split('\n') %}
+                        {% if line.strip() %}
+                            <div class="summary-item">
+                                {{ line }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-slate-50 border border-dashed border-slate-300 rounded-lg p-6 mb-8">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-info-circle text-slate-400 text-lg"></i>
+            <p class="text-slate-600">
+                <span class="font-semibold">Note:</span> AI summary requires Ollama running locally. Start with: <code class="bg-slate-100 px-2 py-1 rounded text-sm">ollama serve</code>. Then pull Mistral: <code class="bg-slate-100 px-2 py-1 rounded text-sm">ollama pull mistral</code>
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Diff Table -->
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm mb-8">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <i class="fas fa-code-branch text-slate-600"></i>
+                Detailed Changes
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="diff-table">
+                <tbody>
+                    {% if rows %}
+                        {% for row in rows %}
+                            {% if row[0] == "same" %}
+                                <tr class="diff-context">
+                                    <td class="diff-line-number">{{ row[1] }}</td>
+                                    <td class="text-slate-700">{{ row[2] | safe }}</td>
+                                    <td class="diff-line-number">{{ row[3] }}</td>
+                                    <td class="text-slate-700">{{ row[4] | safe }}</td>
+                                </tr>
+                            {% elif row[0] == "remove" %}
+                                <tr class="diff-remove">
+                                    <td class="diff-line-number">{{ row[1] }}</td>
+                                    <td class="text-red-700"><span class="bg-red-200 px-2 py-1 rounded">{{ row[2] | safe }}</span></td>
+                                    <td class="diff-line-number"></td>
+                                    <td></td>
+                                </tr>
+                            {% elif row[0] == "add" %}
+                                <tr class="diff-add">
+                                    <td class="diff-line-number"></td>
+                                    <td></td>
+                                    <td class="diff-line-number">{{ row[3] }}</td>
+                                    <td class="text-green-700"><span class="bg-green-200 px-2 py-1 rounded">{{ row[4] | safe }}</span></td>
+                                </tr>
+                            {% elif row[0] == "change" %}
+                                <tr class="diff-change-old">
+                                    <td class="diff-line-number">{{ row[1] }}</td>
+                                    <td class="text-red-700">{{ row[2] | safe }}</td>
+                                    <td class="diff-line-number"></td>
+                                    <td></td>
+                                </tr>
+                                <tr class="diff-change-new">
+                                    <td class="diff-line-number"></td>
+                                    <td></td>
+                                    <td class="diff-line-number">{{ row[3] }}</td>
+                                    <td class="text-green-700">{{ row[4] | safe }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-8 text-slate-500">
+                                <i class="fas fa-check-circle text-2xl mb-2"></i>
+                                <p class="font-medium">No differences found</p>
+                                <p class="text-sm">Both versions have identical content</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="bg-white rounded-lg border border-slate-200 p-6 mb-8">
+        <h3 class="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-key text-slate-600"></i>Legend
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-6 bg-green-100 border border-green-300 rounded"></div>
+                <span class="text-slate-700">Added</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-6 bg-red-100 border border-red-300 rounded"></div>
+                <span class="text-slate-700">Removed</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-6 bg-slate-100 border border-slate-300 rounded"></div>
+                <span class="text-slate-700">Unchanged</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <div class="flex gap-4 justify-between">
+        <a href="/ui/{{ repo }}/{{ api }}/history" class="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg font-medium transition flex items-center gap-2 w-fit">
+            <i class="fas fa-arrow-left"></i>
+            Back to History
+        </a>
+        <a href="/ui/{{ repo }}/{{ api }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center gap-2 w-fit">
+            <i class="fas fa-file-alt"></i>
+            Latest Version
+        </a>
+    </div>
+</div>
 
 </body>
 </html>

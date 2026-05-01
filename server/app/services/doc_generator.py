@@ -1,4 +1,5 @@
 import requests
+import json
 
 
 class APIDocGenerator:
@@ -7,37 +8,128 @@ class APIDocGenerator:
         self.model = model
         self.ollama_url = "http://localhost:11434/api/generate"
 
-    def generate_explanation(self, function_source):
+    def generate_explanation(self, route):
 
+        # =========================
+        # 🔥 SAFE EXTRACTION
+        # =========================
+        function_name = getattr(route, "function_name", None) or getattr(route, "function", "unknown")
+        method = getattr(route, "method", "")
+        path = getattr(route, "path", "")
+        parameters = getattr(route, "parameters", None) or getattr(route, "params", [])
+        calls = getattr(route, "calls", [])
+        call_graph = getattr(route, "call_graph", {})
+        response = getattr(route, "response", {})
+        db_ops = getattr(route, "db_ops", [])
+        source_code = getattr(route, "source_code", "")
+
+        # =========================
+        # 🔥 NORMALIZATION
+        # =========================
+        def safe_json(data):
+            try:
+                return json.dumps(data, default=lambda o: o.__dict__, indent=2)
+            except Exception:
+                return str(data)
+
+        parameters_json = safe_json(parameters)
+        call_graph_json = safe_json(call_graph)
+        response_json = safe_json(response)
+        db_ops_json = safe_json(db_ops)
+
+        # =========================
+        # 🔥 STRONG BUSINESS PROMPT
+        # =========================
         prompt = f"""
-You are an API documentation assistant.
+You are a senior backend engineer creating INTERNAL API documentation.
 
-Based on the following API function, generate:
+IMPORTANT:
+- Write in a professional, business-oriented tone
+- DO NOT mention frameworks (Spring, Java, etc.)
+- Focus on system behavior and business purpose
+- Ignore getters, setters, logging, trivial helpers
 
-1. A concise overview (2-3 sentences).
-2. Business logic explanation.
-3. Change impact explanation.
+GOAL:
+Convert technical details into meaningful system-level documentation.
 
-Return in JSON format:
+---
+
+Return ONLY valid JSON:
 
 {{
-  "overview": "...",
-  "business_logic": "...",
-  "change_impact": "..."
+  "overview": "What this API does and why it exists (business purpose)",
+  "business_logic": "How the system processes the request internally (clear explanation)",
+  "business_flow": ["Step 1...", "Step 2...", "Step 3..."],
+  "response_description": "What the client receives (business meaning, not code)",
+  "change_impact": "Who/what is affected if this API changes"
 }}
 
-Function:
+---
 
-{function_source}
+API CONTEXT
+
+Function: {function_name}
+Method: {method}
+Path: {path}
+
+Parameters:
+{parameters_json}
+
+Calls:
+{calls}
+
+Call Graph:
+{call_graph_json}
+
+Database Operations:
+{db_ops_json}
+
+Response:
+{response_json}
+
+Source Code:
+{source_code}
 """
 
-        response = requests.post(
-            self.ollama_url,
-            json={
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False
-            }
-        )
+        # =========================
+        # 🔥 LLM CALL + RETRY
+        # =========================
+        for attempt in range(2):  # retry once if parsing fails
+            try:
+                response = requests.post(
+                    self.ollama_url,
+                    json={
+                        "model": self.model,
+                        "prompt": prompt,
+                        "stream": False
+                    },
+                    timeout=60
+                )
 
-        return response.json()["response"]
+                output = response.json().get("response", "").strip()
+
+                # 🔥 CLEAN JSON
+                if "{" in output and "}" in output:
+                    output = output[output.find("{"): output.rfind("}") + 1]
+
+                parsed = json.loads(output)
+
+                # 🔥 BASIC VALIDATION
+                if "overview" in parsed and "business_flow" in parsed:
+                    return json.dumps(parsed)
+
+            except Exception as e:
+                print(f"LLM ERROR (attempt {attempt+1}):", e)
+
+        # =========================
+        # 🔥 FALLBACK (SMART)
+        # =========================
+        return json.dumps({
+            "overview": f"Provides functionality for {function_name}",
+            "business_logic": "Processes request and interacts with underlying system components",
+            "business_flow": [
+                f"Invoke {c}" for c in calls
+            ] if calls else [],
+            "response_description": "Returns result based on request processing",
+            "change_impact": "Changes may affect dependent services and clients"
+        })

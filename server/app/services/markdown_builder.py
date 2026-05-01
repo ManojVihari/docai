@@ -1,54 +1,151 @@
+import json
+
+
 class MarkdownBuilder:
 
     def build(self, route_data, llm_sections):
-        print(f"Building markdown for route: {route_data.function_name}")
 
-        md = f"# API: {route_data.function_name}\n\n"
+        # 🔥 SAFE NAME
+        api_name = getattr(route_data, "function_name", None) or getattr(route_data, "function", "unknown")
 
-        # Overview (from LLM)
+        md = f"# API: {api_name}\n\n"
+
+        # =========================
+        # 🔥 Overview
+        # =========================
         md += "## Overview\n"
-        md += llm_sections["overview"] + "\n\n"
+        md += llm_sections.get("overview", "No overview available.") + "\n\n"
 
-        # Endpoint
+        # =========================
+        # 🔥 Endpoint
+        # =========================
         md += "## Endpoint\n"
-        md += f"- Method: {route_data.method}\n"
-        md += f"- Path: {route_data.path}\n\n"
+        md += f"- **Method:** {route_data.method}\n"
+        md += f"- **Path:** `{route_data.path}`\n\n"
 
-        # Request Body (only if parameters exist)
-        if route_data.parameters:
+        # =========================
+        # 🔥 Request (DTO Structured)
+        # =========================
+        parameters = getattr(route_data, "parameters", None) or getattr(route_data, "params", [])
+
+        if parameters:
             md += "## Request\n\n"
-            md += "### Request Body\n"
-            md += "| Field | Type | Required | Default |\n"
-            md += "| --- | --- | --- | --- |\n"
 
-            for param in route_data.parameters:
+            for param in parameters:
 
-                required_text = "Yes" if param.required else "No"
-                default_text = param.default if param.default is not None else "-"
+                name = getattr(param, "name", param.get("name"))
+                ptype = getattr(param, "type", param.get("type"))
+                schema = getattr(param, "schema", param.get("schema", {}))
 
-                md += f"| {param.name} | {param.type} | {required_text} | {default_text} |\n"
+                md += f"### {name} ({ptype})\n\n"
+
+                if schema:
+                    md += "| Field | Type | Required | Validation |\n"
+                    md += "|------|------|----------|------------|\n"
+
+                    for field, details in schema.items():
+                        ftype = details.get("type")
+                        validation = details.get("validation", {})
+
+                        rules = ", ".join(validation.keys()) if validation else "-"
+                        req = "Yes" if validation.get("required") else "No"
+
+                        md += f"| {field} | {ftype} | {req} | {rules} |\n"
+
+                md += "\n"
+
+        # =========================
+        # 🔥 Response (FIXED)
+        # =========================
+        response = getattr(route_data, "response", {})
+
+        md += "## Response\n\n"
+
+        if response.get("type"):
+            md += f"- **Type:** {response.get('type')}\n"
+
+        # 🔥 Prefer structured schema
+        if isinstance(response.get("schema"), dict):
+            md += "- **Schema:**\n"
+            md += "```json\n"
+            md += json.dumps(response["schema"], indent=2)
+            md += "\n```\n\n"
+
+        else:
+            # 🔥 DO NOT show internal method call
+            desc = llm_sections.get("response_description")
+
+            if desc:
+                md += f"- **Description:** {desc}\n\n"
+            else:
+                md += "- **Description:** Returns result of operation\n\n"
+
+        # =========================
+        # 🔥 Errors
+        # =========================
+        errors = getattr(route_data, "status_codes", None) or getattr(route_data, "errors", [])
+
+        if errors:
+            md += "## Errors\n\n"
+            md += "| Code | Field | Rule |\n"
+            md += "|------|------|------|\n"
+
+            for err in errors:
+                fields = err.get("fields", [])
+
+                for f in fields:
+                    md += f"| {err.get('status')} | {f.get('name')} | {f.get('rule')} |\n"
 
             md += "\n"
 
+        # =========================
+        # 🔥 Process Flow (KEY UPGRADE)
+        # =========================
+        flow = llm_sections.get("business_flow", [])
 
-        # Response Section (only if status codes exist)
-        if route_data.status_codes:
-            md += "## Response\n\n"
-            md += "### Error Responses\n"
-            md += "| Code | Meaning |\n"
-            md += "| --- | --- |\n"
+        if not flow:
+            # fallback using AST calls
+            direct = getattr(route_data, "call_graph", {}).get("direct", [])
+            flow = [f"Invoke {c}" for c in direct]
 
-            for error in route_data.status_codes:
-                md += f"| {error.code} | {error.detail} |\n"
-
+        if flow:
+            md += "## Process Flow\n"
+            for i, step in enumerate(flow, 1):
+                md += f"{i}. {step}\n"
             md += "\n"
 
-        # Business Logic
+        # =========================
+        # 🔥 DB Operations
+        # =========================
+        db_ops = getattr(route_data, "db_ops", [])
+
+        if db_ops:
+            md += "## Database Operations\n"
+            for op in db_ops:
+                md += f"- **{op.get('type')}** → `{op.get('call')}`\n"
+            md += "\n"
+
+        # =========================
+        # 🔥 Business Logic
+        # =========================
         md += "## Business Logic\n"
-        md += llm_sections["business_logic"] + "\n\n"
+        md += llm_sections.get("business_logic", "No details available.") + "\n\n"
 
-        # Change Impact
+        # =========================
+        # 🔥 Breaking Changes
+        # =========================
+        breaking = getattr(route_data, "breaking_changes", [])
+
+        if breaking:
+            md += "## Breaking Changes\n"
+            for b in breaking:
+                md += f"- **{b.get('type')}** → {b.get('field')} ({b.get('rule')})\n"
+            md += "\n"
+
+        # =========================
+        # 🔥 Change Impact
+        # =========================
         md += "## Change Impact\n"
-        md += llm_sections["change_impact"] + "\n"
+        md += llm_sections.get("change_impact", "No impact details available.") + "\n"
 
         return md

@@ -4,3 +4,5 @@ jinja2
 pydantic
 requests
 sqlalchemy
+bs4
+markdown

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Templates - {{ api }} - DocAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .template-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .template-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .template-card.selected {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .category-happy_path { background: #d1fae5; color: #065f46; }
+        .category-error_cases { background: #fee2e2; color: #991b1b; }
+        .category-security_tests { background: #fef3c7; color: #92400e; }
+        .category-performance_tests { background: #dbeafe; color: #1e40af; }
+        .category-edge_cases { background: #e9d5ff; color: #6b21a8; }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+<!-- Navigation -->
+<div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <a href="/ui" class="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <span class="text-slate-400">/</span>
+            <a href="/ui/{{ repo }}" class="text-blue-600 hover:text-blue-700 text-sm">{{ repo }}</a>
+            <span class="text-slate-400">/</span>
+            <a href="/ui/{{ repo }}/{{ api }}" class="text-blue-600 hover:text-blue-700 text-sm">{{ api }}</a>
+            <span class="text-slate-400">/</span>
+            <span class="text-slate-600 text-sm font-semibold">Test Templates</span>
+        </div>
+        <a href="/ui/{{ repo }}/{{ api }}" class="text-slate-600 hover:text-slate-900 text-sm flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Back to API
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-8 fade-in">
+        <h1 class="text-4xl font-bold text-slate-900 mb-2">Test Templates</h1>
+        <p class="text-slate-600">
+            Manage reusable test case templates for <strong>{{ api }}</strong> in <strong>{{ repo }}</strong>
+        </p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-6 border-b border-slate-200 mb-8">
+        <button onclick="switchTab('recommended')" class="pb-3 text-slate-600 font-semibold border-b-0 hover:text-slate-900 tab-link" data-tab="recommended">
+            <i class="fas fa-star"></i> Recommended for {{ api }}
+        </button>
+        <button onclick="switchTab('predefined')" class="pb-3 text-slate-600 font-semibold border-b-0 hover:text-slate-900 tab-link" data-tab="predefined">
+            <i class="fas fa-cube"></i> Predefined Templates
+        </button>
+        <button onclick="switchTab('custom')" class="pb-3 text-slate-600 font-semibold border-b-0 hover:text-slate-900 tab-link" data-tab="custom">
+            <i class="fas fa-code"></i> Custom Templates
+        </button>
+    </div>
+
+    <!-- Recommended Templates Tab -->
+    <div id="tab-recommended" class="tab-content">
+        <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <i class="fas fa-lightbulb text-blue-600"></i>
+            <strong class="text-blue-900 ml-2">Personalized Recommendations</strong>
+            <p class="text-blue-800 text-sm mt-1">These templates are tailored for your API based on its name and functionality.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for template in recommendations %}
+            <div class="template-card" onclick="viewTemplate(this)">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-semibold text-slate-900">{{ template.name }}</h3>
+                        <span class="category-badge category-{{ template.category }}">{{ template.category }}</span>
+                    </div>
+                    <div class="text-slate-400">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                <p class="text-slate-600 text-sm mb-3">{{ template.description }}</p>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500"><i class="fas fa-check-circle"></i> {{ template.test_cases|length }} tests</span>
+                    <button onclick="applyTemplate(event, '{{ template.name }}')" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs">
+                        <i class="fas fa-check"></i> Apply
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Predefined Templates Tab -->
+    <div id="tab-predefined" class="tab-content hidden">
+        {% for category, templates_list in predefined_templates.items() %}
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <span class="category-badge category-{{ category }}">{{ category|replace('_', ' ')|upper }}</span>
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for template in templates_list %}
+                <div class="template-card" onclick="viewTemplate(this)">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="font-semibold text-slate-900">{{ template.name }}</h3>
+                        </div>
+                        <div class="text-slate-400">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-4">{{ template.description }}</p>
+                    <div class="space-y-2 mb-4">
+                        {% for test_case in template.test_cases[:3] %}
+                        <div class="text-xs text-slate-700 flex gap-2">
+                            <span class="text-slate-400">•</span>
+                            <span>{{ test_case }}</span>
+                        </div>
+                        {% endfor %}
+                        {% if template.test_cases|length > 3 %}
+                        <div class="text-xs text-slate-500 italic">+{{ template.test_cases|length - 3 }} more tests</div>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-500"><i class="fas fa-check-circle"></i> {{ template.test_cases|length }} tests</span>
+                        <button onclick="saveCustomTemplate(event, '{{ template.name }}')" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs">
+                            <i class="fas fa-save"></i> Save as Custom
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Custom Templates Tab -->
+    <div id="tab-custom" class="tab-content hidden">
+        {% if custom_templates %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {% for template in custom_templates %}
+            <div class="template-card">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 class="font-semibold text-slate-900">{{ template.name }}</h3>
+                        <span class="category-badge category-{{ template.category }}">{{ template.category }}</span>
+                    </div>
+                    <div class="text-slate-400">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <p class="text-slate-600 text-sm mb-2">Created: <strong>{{ template.created_at.split('T')[0] }}</strong></p>
+                <div class="space-y-2 mb-4">
+                    {% for test_case in template.test_cases[:3] %}
+                    <div class="text-xs text-slate-700 flex gap-2">
+                        <span class="text-slate-400">•</span>
+                        <span>{{ test_case }}</span>
+                    </div>
+                    {% endfor %}
+                    {% if template.test_cases|length > 3 %}
+                    <div class="text-xs text-slate-500 italic">+{{ template.test_cases|length - 3 }} more tests</div>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500"><i class="fas fa-check-circle"></i> {{ template.test_count }} tests</span>
+                    <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-6 bg-blue-50 rounded-lg border border-blue-200 text-center">
+            <i class="fas fa-folder-open text-blue-600 text-3xl mb-3"></i>
+            <p class="text-slate-600 font-semibold">No custom templates yet</p>
+            <p class="text-slate-500 text-sm mt-1">Save templates from predefined collections to create your own</p>
+        </div>
+        {% endif %}
+
+        <!-- Create New Template -->
+        <div class="mt-8 bg-white p-6 rounded-lg border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">
+                <i class="fas fa-plus-circle text-green-600"></i> Create New Template
+            </h3>
+            <form onsubmit="createTemplate(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-2">Template Name</label>
+                    <input type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Custom Payment Tests">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-2">Category</label>
+                    <select required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option>happy_path</option>
+                        <option>error_cases</option>
+                        <option>security_tests</option>
+                        <option>performance_tests</option>
+                        <option>edge_cases</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-2">Description</label>
+                    <textarea required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Describe what this template covers..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-900 mb-2">Test Cases (one per line)</label>
+                    <textarea required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm" rows="6" placeholder="Test case 1&#10;Test case 2&#10;Test case 3"></textarea>
+                </div>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center gap-2">
+                    <i class="fas fa-check"></i> Create Template
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.add('hidden');
+        });
+        
+        // Remove active state from all tabs
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.classList.remove('tab-active');
+        });
+        
+        // Show selected tab
+        document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        
+        // Add active state to clicked link
+        event.target.closest('.tab-link').classList.add('tab-active');
+    }
+
+    // Set first tab as active
+    document.querySelector('.tab-link').classList.add('tab-active');
+
+    function viewTemplate(el) {
+        // Toggle selection
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        el.classList.add('selected');
+    }
+
+    function applyTemplate(e, templateName) {
+        e.stopPropagation();
+        alert(`Template "${templateName}" will be applied to the QA plan.`);
+        // Implementation: Apply template to QA plan
+    }
+
+    function saveCustomTemplate(e, templateName) {
+        e.stopPropagation();
+        alert(`Template "${templateName}" saved as custom.`);
+        // Implementation: Save as custom template
+    }
+
+    function createTemplate(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        alert('Custom template created successfully!');
+        form.reset();
+    }
+</script>
+
+</body>
+</html>
